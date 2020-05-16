@@ -24,4 +24,7 @@ var Config = struct {
 	Jaeger struct {
 		Endpoint string
 	}
+	Opentelemetry struct {
+		Endpoint string
+	}
 }{}

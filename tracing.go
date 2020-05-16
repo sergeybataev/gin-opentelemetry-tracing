@@ -7,10 +7,12 @@ import (
 	"strconv"
 	"strings"
 
+	"go.opentelemetry.io/otel/api/kv/value"
+
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/api/correlation"
 	"go.opentelemetry.io/otel/api/global"
-	"go.opentelemetry.io/otel/api/key"
+	"go.opentelemetry.io/otel/api/kv"
 	"go.opentelemetry.io/otel/api/trace"
 	"go.opentelemetry.io/otel/plugin/httptrace"
 	"google.golang.org/grpc/codes"
@@ -43,11 +45,11 @@ func MiddlewareTracer() gin.HandlerFunc {
 			trace.WithAttributes(attrs...),
 		)
 
-		span.SetAttributes(key.New("http.target").String(c.Request.RequestURI))
-		span.SetAttributes(key.New("http.host").String(c.Request.URL.Host))
-		span.SetAttributes(key.New("http.scheme").String(c.Request.URL.Scheme))
-		span.SetAttributes(key.New("http.flavor").String(c.Request.Proto))
-		span.SetAttributes(key.New("http.user_agent").String(c.Request.UserAgent()))
+		span.SetAttributes(kv.KeyValue{Key: "http.target", Value: value.String(c.Request.RequestURI)})
+		span.SetAttributes(kv.KeyValue{Key: "http.host", Value: value.String(c.Request.URL.Host)})
+		span.SetAttributes(kv.KeyValue{Key: "http.scheme", Value: value.String(c.Request.URL.Scheme)})
+		span.SetAttributes(kv.KeyValue{Key: "http.flavor", Value: value.String(c.Request.Proto)})
+		span.SetAttributes(kv.KeyValue{Key: "http.user_agent", Value: value.String(c.Request.UserAgent())})
 		span.SetAttributes(httptrace.HTTPRemoteAddr.String(c.ClientIP()))
 
 		defer span.End() // after all the other defers are completed.. finish the span
@@ -57,7 +59,7 @@ func MiddlewareTracer() gin.HandlerFunc {
 
 		s := c.Writer.Status()
 		span.SetAttributes(httptrace.HTTPStatus.Int(s))
-		span.SetAttributes(key.New("http.status_text").String(http.StatusText(s)))
+		span.SetAttributes(kv.KeyValue{Key: "http.status_text", Value: value.String(http.StatusText(s))})
 		span.SetStatus(mappingHTTPCodes(s), http.StatusText(s))
 	}
 }
@@ -93,11 +95,11 @@ func NewGinCtxSpan(c *gin.Context, name string) (ctx context.Context, span trace
 	// If Trace not exist in ctx
 	ctx = context.Background()
 
-	opts := trace.WithAttributes(key.New("http.target").String(c.Request.RequestURI),
-		key.New("http.host").String(c.Request.URL.Host),
-		key.New("http.scheme").String(c.Request.URL.Scheme),
-		key.New("http.flavor").String(c.Request.Proto),
-		key.New("http.user_agent").String(c.Request.UserAgent()),
+	opts := trace.WithAttributes(kv.KeyValue{Key: "http.target", Value: value.String(c.Request.RequestURI)},
+		kv.KeyValue{Key: "http.host", Value: value.String(c.Request.URL.Host)},
+		kv.KeyValue{Key: "http.scheme", Value: value.String(c.Request.URL.Scheme)},
+		kv.KeyValue{Key: "http.flavor", Value: value.String(c.Request.Proto)},
+		kv.KeyValue{Key: "http.user_agent", Value: value.String(c.Request.UserAgent())},
 		httptrace.HTTPRemoteAddr.String(c.ClientIP()))
 
 	return tracing.Start(ctx,

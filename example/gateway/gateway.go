@@ -22,7 +22,7 @@ func main() {
 	log.Debug().Msgf("%v", example.Config)
 
 	// Store trace into Jaeger
-	/*	fn := example.NewJaegerTracing(example.Config.Jaeger.Endpoint, "Gateway")
+	/*	fn := example.NewOptlTracing(example.Config.Jaeger.Endpoint, "Gateway")
 		defer fn()*/
 	// Print trace info into Stdout
 	example.NewStdoutTracing("Gateway")
